@@ -1,0 +1,109 @@
+---
+title: 'Problem Set #3'
+urlcolor: blue
+output: 
+  pdf_document: default
+bibliography: ../bib/references.bib 
+csl: ../bib/apa.csl
+---
+
+```{r setup, include = F}
+knitr::opts_chunk$set(echo = F, warning = F, message = F, out.width = '75%', fig.align = 'center')
+
+
+# Load libraries
+library(tidyverse)
+library(scales)
+library(knitr)
+library(kableExtra)
+
+
+# Directory paths
+getwd()
+data_dir <- file.path(".", "files")
+bib_dir <- file.path('..', 'bib')
+
+input_data_dir <- file.path('..', 'data')
+housing_df <- read_csv(file = file.path(input_data_dir, "housing.zip"))
+
+```
+
+
+# About the data
+The data [@housing] contains information from the 1990 California census. @housing includes the following variables: longitude, latitude, housing_median_age, total_rooms, total_bedrooms, population, households, median_income, median_house_value, ocean_proximity . 
+
+```{r}
+list.files(data_dir)
+housing_df <- readRDS(file.path(data_dir, "housing.RDS", fsep="/"))
+housing_df %>%
+      head(10) %>% 
+      kable() %>%
+      kable_styling(latex_options = c('scale_down', 'HOLD_position'))
+```
+# Data analysis
+
+There is positive correlation between median income and median house value. Houses near bay or ocean have greater rate of change than inland houses.  
+```{r}
+housing_df %>% 
+  ggplot(mapping = aes(x = median_income, y = median_house_value, color = ocean_proximity)) + 
+  geom_point()+
+  ggtitle('Correlation between Median Income and Median House Value') +
+  xlab('Median income') +ylab('Median house value')+
+  scale_color_brewer(palette = 'Spectral', name = "Ocean Proximity") +
+  scale_x_continuous(labels = label_number(prefix = '$', suffix = 'K', scale = 10, accuracy = 1)) + 
+  scale_y_continuous(labels = label_number(prefix = '$', suffix = 'K', scale = 1e-3, accuracy = 1)) +
+  theme_minimal()
+```
+
+There is positive correlation between median income and median house value. Inland houses have the smallest  rate of change. There are limited island houses in this sample.  
+```{r}
+housing_df %>% 
+  ggplot(mapping = aes(x = median_income, y = median_house_value)) + 
+  geom_point()+
+  facet_grid(rows = vars(ocean_proximity)) +
+  ggtitle('Correlation between Median Income and Median House Value') +
+  xlab('Median Income') +ylab('Median House Value') +
+  scale_x_continuous(labels = label_number(prefix = '$', suffix = 'K', scale = 10, accuracy = 1)) + 
+  scale_y_continuous(labels = label_number(prefix = '$', suffix = 'K', scale = 1e-3, accuracy = 1)) +
+  theme_minimal()
+```
+
+This map shows a vague shape of the California landscape. There is a negative correlation between the logitude and latitude.
+```{r}
+housing_df %>% 
+  ggplot(mapping = aes(x = longitude, y = latitude, color = ocean_proximity)) +
+  geom_point()+
+  ggtitle('Correlation between Longitude and Latitude') +
+  xlab('Longitude') +ylab('Latitude') +
+  scale_color_brewer(palette = 'Set3', name = "Ocean Proximity") +
+  coord_fixed() +
+  theme_light()
+```
+
+If the houses are in the same longitude, the lower the latitude, the higher the median house value. 
+```{r}
+housing_df %>% 
+  ggplot(mapping = aes(x = longitude, y = latitude, color = median_house_value)) +
+  geom_point()+
+  ggtitle('Correlation between Longitude and Latitude by Median House Value') +
+  xlab('Longitude') +ylab('Latitude') +
+  scale_color_gradient(low = 'green', high = 'orange', name = "Median House Value", labels = label_number(prefix = '$', suffix = 'K', scale = 1e-3, accuracy = 1)) +
+  coord_fixed() +
+  theme_grey()
+```
+
+The average house value of island houses is more than 3 times higher than inland house, while houses near bay has slighltly higher average house values than houses near ocean. 
+```{r}
+housing_df %>% 
+  group_by(ocean_proximity) %>% 
+  summarize(average_house_value = mean(median_house_value, na.rm = TRUE)) %>% 
+  ggplot(aes(x = ocean_proximity, y=average_house_value)) +
+  geom_col(width = 0.6) +
+  ggtitle('Average House Value by Ocean Proximity') +
+  xlab('Ocean Proximity') +ylab('Average House Value') +
+  scale_y_continuous(labels = label_number(prefix = '$', suffix = 'K', scale = 1e-3, accuracy = 1)) 
+  
+  
+```
+# References
+
