@@ -105,5 +105,16 @@ housing_df %>%
   
   
 ```
+
+There is positive correlation between the number of households and median house values when the number of households is below 2500; the correlation becomes negative when the number of households exceed 2500 and the confidence intervals also grow wider. 
+```{r}
+housing_df %>% 
+  ggplot(aes(x = households, y=median_house_value)) +
+  geom_smooth(method = "loess") +
+  ggtitle('Correlation between Number of Households and Median House Value')+
+  xlab('Households') +ylab('Median House Value') +
+  scale_y_continuous(labels = label_number(prefix = '$', suffix = 'K', scale = 1e-3, accuracy = 1)) 
+
+```
 # References
 
